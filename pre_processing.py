@@ -1,7 +1,6 @@
 import pandas as pd
-from sklearn.naive_bayes import GaussianNB
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 import numpy as np
 from statistics import stdev
 import nltk
@@ -25,12 +24,16 @@ def pre_processing(df):
 	# convert all characters to lowercase
 	df['Comment'] = df['Comment'].str.lower()
 
+	# remove all URLs
+	df['Comment'] = df['Comment'].str.replace(r'https?:\/\/.*[\r\n]*', ' ')
+
 	# remove all escaping characters
 	# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
 	# 'a majority of canadians can'
 	new_rows = []
 	for row in df['Comment']:
 		new_row = row
+
 		# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
 		# 'a\xc2\xa0majority of canadians can'
 		new_row = new_row.replace('\\\\', '\\')
@@ -42,9 +45,9 @@ def pre_processing(df):
 		new_rows.append(new_row)
 	df['Comment'] = new_rows
 
+
 	# remove all specials characters ('.', ',', '\n' ...) except apostrophes '\''
 	df['Comment'] = df['Comment'].str.replace('[^a-z\']+', ' ')
-
 
 	return df
 
@@ -81,19 +84,20 @@ def lemmatization(docs):
 
 	return new_docs
 
-def run_naive_bayes(X_train, y_train, X_test, y_test):
+def run_naive_bayes(X_train, y_train, X_test, y_test, _alpha=0.5):
 	# fit
-	clf = GaussianNB()
+	from sklearn.naive_bayes import MultinomialNB
+	clf = MultinomialNB(alpha=_alpha)
 	clf.fit(X_train, y_train)
 
 	# predict
 	predictions_count = clf.predict(X_test)
 
 	# print evaluation score
+	print("f1 score: ", f1_score(y_test, predictions_count))
 	# np.set_printoptions(threshold=sys.maxsize)
 	# print(predictions_count)
 	# print(y_test.tolist())
-	print("f1 score: ", f1_score(y_test, predictions_count))
 
 if __name__ == "__main__":
 	# read data
@@ -104,13 +108,14 @@ if __name__ == "__main__":
 	df_train = pre_processing(df_train)
 	df_test = pre_processing(df_test)
 
-	with open("../test.csv", 'w+') as file:
-		file.write(df_train.to_csv(index=False, sep=','))
 
-	exit()
+	# with open("../test.csv", 'w+') as file:
+	# 	file.write(df_train.to_csv(index=False, sep=','))
+
 	# labels
 	y_train = df_train['Insult']
 	y_test = df_test['Insult']
+	
 
 	#################################### Naive Bayes ####################################
 	######### naive bayes without any optimizations #########
@@ -141,15 +146,28 @@ if __name__ == "__main__":
 			X_test_count.toarray(), y_test)
 
 	######### stop words #########
-	df_train_stop = df_train.copy()
-	df_test_stop = df_test.copy()
-
 	count_vectorizer = CountVectorizer(stop_words='english')
-	X_train_count = count_vectorizer.fit_transform(df_train_stop['Comment'])
-	X_test_count = count_vectorizer.transform(df_test_stop['Comment'])
+	X_train_count = count_vectorizer.fit_transform(df_train['Comment'])
+	X_test_count = count_vectorizer.transform(df_test['Comment'])
 
 	print("Naive Bayes after removing stop-words :")
 	run_naive_bayes(X_train_count.toarray(), y_train,
 			X_test_count.toarray(), y_test)
 
+	######### n-grams #########
+	count_vectorizer = CountVectorizer(ngram_range=(2, 2))
+	X_train_count = count_vectorizer.fit_transform(df_train['Comment'])
+	X_test_count = count_vectorizer.transform(df_test['Comment'])
 
+	print("Naive Bayes with bigrams :")
+	run_naive_bayes(X_train_count.toarray(), y_train,
+			X_test_count.toarray(), y_test)
+
+	######### laplace smoothing #########
+	count_vectorizer = CountVectorizer()
+	X_train_count = count_vectorizer.fit_transform(df_train['Comment'])
+	X_test_count = count_vectorizer.transform(df_test['Comment'])
+
+	print("Naive Bayes with laplace smoothing :")
+	run_naive_bayes(X_train_count.toarray(), y_train,
+			X_test_count.toarray(), y_test, 1)
