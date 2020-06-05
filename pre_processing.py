@@ -10,11 +10,42 @@ from nltk.corpus import wordnet as wn
 from nltk.tokenize import word_tokenize 
 from nltk.stem import WordNetLemmatizer
 import sys
+from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+import re
+# from unidecode import unidecode
+import unicodedata
+import csv
 
 
 def pre_processing(df):
+	# remove starting and ending double quotes (") 
+	df['Comment'] = df['Comment'].str.strip('"')
+
+	# convert all characters to lowercase
 	df['Comment'] = df['Comment'].str.lower()
-	# df_train['content'] = df_train['content'].str.replace('\.|\,', '', regex=True)
+
+	# remove all escaping characters
+	# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
+	# 'a majority of canadians can'
+	new_rows = []
+	for row in df['Comment']:
+		new_row = row
+		# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
+		# 'a\xc2\xa0majority of canadians can'
+		new_row = new_row.replace('\\\\', '\\')
+
+		# e.g. 'a\xc2\xa0majority of canadians can' is converted to
+		# 'a majority of canadians can'
+		new_row = new_row.encode().decode('unicode_escape')
+
+		new_rows.append(new_row)
+	df['Comment'] = new_rows
+
+	# remove all specials characters ('.', ',', '\n' ...) except apostrophes '\''
+	df['Comment'] = df['Comment'].str.replace('[^a-z\']+', ' ')
+
+
 	return df
 
 def wordnet_pos_code(tag):
@@ -59,10 +90,10 @@ def run_naive_bayes(X_train, y_train, X_test, y_test):
 	predictions_count = clf.predict(X_test)
 
 	# print evaluation score
-	np.set_printoptions(threshold=sys.maxsize)
-	print(predictions_count)
-	print(y_test)
-	# print("f1 score: ", f1_score(y_test, predictions_count))
+	# np.set_printoptions(threshold=sys.maxsize)
+	# print(predictions_count)
+	# print(y_test.tolist())
+	print("f1 score: ", f1_score(y_test, predictions_count))
 
 if __name__ == "__main__":
 	# read data
@@ -73,7 +104,10 @@ if __name__ == "__main__":
 	df_train = pre_processing(df_train)
 	df_test = pre_processing(df_test)
 
+	with open("../test.csv", 'w+') as file:
+		file.write(df_train.to_csv(index=False, sep=','))
 
+	exit()
 	# labels
 	y_train = df_train['Insult']
 	y_test = df_test['Insult']
@@ -89,8 +123,7 @@ if __name__ == "__main__":
 			X_test_count.toarray(), y_test)
 
 
-	exit()
-	######### naive bayes with optimizations #########
+	######### Naive Bayes with optimizations #########
 	######### lemmatization #########
 	# copy is needed because each optimization is independent
 	df_train_lemma = df_train.copy()
