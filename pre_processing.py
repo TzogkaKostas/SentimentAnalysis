@@ -1,7 +1,7 @@
 import pandas as pd
 
 def pre_processing(df):
-	# remove starting and ending double quotes (") 
+	# remove leading and trailing double quotes (") 
 	df['Comment'] = df['Comment'].str.strip('"')
 
 	# convert all characters to lowercase
@@ -15,20 +15,21 @@ def pre_processing(df):
 	# 'a majority of canadians can'
 	new_rows = []
 	for row in df['Comment']:
-		new_row = row
+		# double decoding is needed in order to convert characters with double
+		# slashes (\) 
 
 		# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
 		# 'a\xc2\xa0majority of canadians can'
-		new_row = new_row.replace('\\\\', '\\')
-
-		# e.g. 'a\xc2\xa0majority of canadians can' is converted to
-		# 'a majority of canadians can'
+		new_row = row.encode().decode('unicode_escape')
+		
+		# and then is converted to 'a majority of canadians can'
 		new_row = new_row.encode().decode('unicode_escape')
 
 		new_rows.append(new_row)
 	df['Comment'] = new_rows
 
-	# remove all specials characters ('.', ',', '\n' ...) except apostrophes '\''
+	# remove all specials characters ('.', ',', '\n' ...) except apostrophes (')
+	# because, words like 'don't' seem better than 'don t'
 	df['Comment'] = df['Comment'].str.replace('[^a-z\']+', ' ')
 
 	return df

@@ -110,3 +110,12 @@ if __name__ == "__main__":
 	print("Naive Bayes with laplace smoothing :")
 	run_naive_bayes(X_train.toarray(), y_train,
 			X_test.toarray(), y_test, 1)
+
+	######### BEAT THE BENCHMARK #########
+	count_vectorizer = CountVectorizer(stop_words='english')
+	X_train_beat = count_vectorizer.fit_transform(df_train_lemma['Comment'])
+	X_test_beat = count_vectorizer.transform(df_test_lemma['Comment'])
+
+	print("All optimazations :")
+	run_naive_bayes(X_train_beat.toarray(), y_train,
+			X_test_beat.toarray(), y_test, 1)
