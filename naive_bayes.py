@@ -22,6 +22,10 @@ def wordnet_pos_code(tag):
 
 def lemmas(data):
 	lemmatizer = WordNetLemmatizer() 
+	# WordNetLemmatizer 'understands' only 4 tags. That is, every word not
+	# tagged as 'ADJ', 'ADV' or 'VERB' is consired as a NOUN. 
+	# In order to avoid this, every tag is converted (wordnet_pos_code)
+	# Lemmatize each word depending on its tag. 
 	return [lemmatizer.lemmatize(token, pos=wordnet_pos_code(tag)) for token, tag in data]
 
 def _lemmatization(data):
@@ -34,11 +38,12 @@ def _lemmatization(data):
 		data = lemmas(data)
 	return ' '.join(data)
 
-def lemmatization(docs):
+def lemmatization(comments):
 	new_docs = []
-	for doc in docs:
-		doc = pos_tag(word_tokenize(doc))
-		new_docs.append(_lemmatization(doc))
+	for comment in comments:
+		# tokenize the comment and find POS tag for each word
+		comment_with_tags = pos_tag(word_tokenize(comment))
+		new_docs.append(_lemmatization(comment_with_tags))
 
 	return new_docs
 

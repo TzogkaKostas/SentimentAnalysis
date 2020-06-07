@@ -1,7 +1,7 @@
 import pandas as pd
 
 def pre_processing(df):
-	# remove leading and trailing double quotes (") 
+	# remove leading and trailing quotes (") 
 	df['Comment'] = df['Comment'].str.strip('"')
 
 	# convert all characters to lowercase
@@ -21,7 +21,6 @@ def pre_processing(df):
 		# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
 		# 'a\xc2\xa0majority of canadians can'
 		new_row = row.encode().decode('unicode_escape')
-		
 		# and then is converted to 'a majority of canadians can'
 		new_row = new_row.encode().decode('unicode_escape')
 

@@ -24,6 +24,8 @@ def wordnet_pos_code(tag):
 
 def _pos_fractions(comment_with_tags):
 	size = len(comment_with_tags)
+
+	# empty comment
 	if size == 0 :
 		return [0, 0, 0, 0]
 
@@ -33,7 +35,7 @@ def _pos_fractions(comment_with_tags):
 	count_nouns = 0
 	for word, tag in comment_with_tags:
 		if wn.ADV == wordnet_pos_code(tag):
-			count_adjectives += 1
+			count_adverbs += 1
 		if wn.VERB == wordnet_pos_code(tag):
 			count_verbs += 1
 		if wn.ADJ == wordnet_pos_code(tag):
@@ -41,9 +43,8 @@ def _pos_fractions(comment_with_tags):
 		if wn.NOUN == wordnet_pos_code(tag):
 			count_nouns += 1
 
-	return [count_adjectives/size, count_adverbs/size, count_adjectives/size, 
+	return [count_adverbs/size, count_verbs/size, count_adjectives/size, 
 			count_nouns/size]
-
 
 def pos_fractions(comments):
 	fractions_array = []
@@ -73,7 +74,7 @@ if __name__ == "__main__":
 	fractions_array_train = pos_fractions(df_train['Comment'].tolist())
 	fractions_array_test = pos_fractions(df_test['Comment'].tolist())
 
-	# combine 2 matrices
+	# combine the 2 matrices (append the 4 fractions for each vector)
 	X_train = np.hstack((X_train.toarray(), fractions_array_train))
 	X_test = np.hstack((X_test.toarray(), fractions_array_test))
 
@@ -89,7 +90,7 @@ if __name__ == "__main__":
 	# print("accuracy score: ", accuracy_score(y_test, predictions))
 
 	#################################### Random Forrest ####################################
-	clf = RandomForestClassifier(random_state=0)
+	clf = RandomForestClassifier()
 	# clf = GridSearchCV(clf, n_jobs=4, param_grid=
 			# {'max_depth':[None,1,2,4,8,16,32,64], ''})
 	clf.fit(X_train, y_train)
