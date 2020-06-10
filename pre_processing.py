@@ -3,8 +3,7 @@ from nltk import wordpunct_tokenize
 from nltk import corpus
 from nltk import download
 import numpy as np
-from spellchecker import SpellChecker
-from nltk.tokenize import word_tokenize 
+
 
 def pre_processing(df):
 	# remove leading and trailing quotes (") 
@@ -18,8 +17,7 @@ def pre_processing(df):
 
 	df = remove_escaping_characters(df)
 
-	# remove all specials characters ('.', ',', '\n' ...) except apostrophes (')
-	# because, words like 'don't' seem better than 'don t'
+	# remove all specials characters ('.', ',', '\n' ...)
 	df['Comment'] = df['Comment'].str.replace('[^a-z]+', ' ')
 
 	return df
@@ -30,7 +28,7 @@ def remove_escaping_characters(df):
 	new_rows = []
 	for row in df['Comment']:
 		# double decoding is needed in order to convert characters with double
-		# slashes (\) 
+		# slashes (\\) 
 
 		# e.g. 'a\\xc2\\xa0majority of canadians can' is converted to
 		# 'a\xc2\xa0majority of canadians can'
@@ -43,52 +41,8 @@ def remove_escaping_characters(df):
 
 	return df
 
-def remove_non_english_comments(df):
-	try:
-		english_words = set(corpus.words.words())
-	except LookupError:
-		download('words')
-
-	english_comments= []
-	for comment in df['Comment']:
-		comment = " ".join(w for w in wordpunct_tokenize(comment) if w in english_words)
-
-		english_comments.append(comment)
-
-	df['Comment'] = english_comments
-
-	return df
-
-def correct_comments(df):
-	spell_checker = SpellChecker() 
-
-	corrected_comments = []
-	for comment in df['Comment']:
-		comment = correct_comment(spell_checker, comment)
-		corrected_comments.append(comment)
-	
-	return corrected_comments
-
-def correct_comment(spell_checker, comment):
-	checked_comment = ""
-	for word in word_tokenize(comment):
-		checked_comment += spell_checker.correction(word) + " "
-
-	return checked_comment
 
 if __name__ == "__main__":
-
-
-
-
-	# df_train = pd.read_csv("../data/train.csv", sep=',')
-	# df_train = pre_processing(df_train)
-#  
-	# print(df_train.iloc[527].to_string())
-# 
-	# exit()
-	###############################################
-
 	# read data
 	df_train = pd.read_csv("../data/train.csv", sep=',')
 	df_test = pd.read_csv("../data/impermium_verification_labels.csv", sep=',')
@@ -97,7 +51,7 @@ if __name__ == "__main__":
 	df_train = pre_processing(df_train)
 	df_test = pre_processing(df_test)
 
-	# create new files
+	# create cleaned files
 	with open("../data/train_cleaned.csv", 'w+') as file:
 		file.write(df_train.to_csv(index=False, sep=','))
 	

@@ -80,19 +80,17 @@ if __name__ == "__main__":
 
 
 	#################################### SVM ####################################
-	# clf = svm.SVC(kernel='linear')
-	# # clf = GridSearchCV(clf, {'kernel':('linear', 'rbf'), 'C':[1, 10]}, n_jobs=-1)
-	# clf.fit(X_train, y_train)
+	clf = svm.SVC(kernel='linear')
+	# clf = GridSearchCV(clf, {'kernel':('linear', 'rbf'), 'C':[1, 10]}, n_jobs=-1)
+	clf.fit(X_train, y_train)
 
-	# predictions = clf.predict(X_test)
+	predictions = clf.predict(X_test)
 
-	# print("f1 score: ", f1_score(y_test, predictions))
-	# print("accuracy score: ", accuracy_score(y_test, predictions))
+	print("f1 score: ", f1_score(y_test, predictions))
+	print("accuracy score: ", accuracy_score(y_test, predictions))
 
 	#################################### Random Forrest ####################################
 	clf = RandomForestClassifier()
-	# clf = GridSearchCV(clf, n_jobs=4, param_grid=
-			# {'max_depth':[None,1,2,4,8,16,32,64], ''})
 	clf.fit(X_train, y_train)
 
 	predictions = clf.predict(X_test)
