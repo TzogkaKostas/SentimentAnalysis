@@ -12,3 +12,6 @@ with Naive Bayes before and after some optimizations.
 Comments' vectorization using term frequency–inverse document frequency (TF-IDF)
 values and POS (Part of Speech) fractions and classification with SVM and Random
 Forrests.
+
+Results on Google Colab: 
+https://colab.research.google.com/drive/1YqN2ibbQRQErJcidUa5E3V69ekVen1lZ?usp=sharing
